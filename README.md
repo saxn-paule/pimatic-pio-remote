@@ -107,3 +107,10 @@ Port could be 23 or 8102 depending on the model.
 * VSX-1023
 * VSX-2120
 * VSX-S510
+
+# Beware
+This plugin is in an early alpha stadium and you use it on your own risk. 
+I'm not responsible for any possible damages that occur on your health, hard- or software.
+
+# License
+MIT
