@@ -78,6 +78,7 @@ sendAVR "power.off"
 * cursor.right
 * cursor.left
 * cursor.enter
+* cursor.back
 
 Additional commands for iPod control etc. could be found here but are not supported by this plugin yet. Feel free to contribute.: http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
 
@@ -95,6 +96,16 @@ Sample Plugin Config:
       "port": 23,
       "maxVolume": 100
     }
+```
+The maxVolume could be calculated by the following formula
+```
+dB = 0.5 * volLevel - 80,5
+```
+Sample for a limit of -50dB
+```
+-50 = 0.5 * volLevel - 80.5
+30.5 = 0.5 * volLevel
+61 = volLevel
 ```
 
 Sample Sensor Config:

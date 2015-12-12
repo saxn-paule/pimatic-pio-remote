@@ -206,11 +206,9 @@ module.exports = function(env) {
         client = new net.Socket();
 
         client.on('data', function(data) {
+          //env.logger.debug('Received: ' + data);
+
           var stringyfiedData = data.toString();
-          /**
-          * Cut of useless whitespaces (trim() doesn't work afterwards), don't ask me why
-          **/
-          stringyfiedData = stringyfiedData.replace(/(20){2,}/g, '20')
 
           if(stringyfiedData.indexOf('VOL') === 0) {
             currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
@@ -221,15 +219,11 @@ module.exports = function(env) {
             }
 
             /**
-            * Fit text to 15 characters
+            * Cut text to 15 characters
             **/
             if(str.length > 15) {
               str = str.substring(0, 15);
-            } else if(str.length < 15) {
-              while(str.length < 15) {
-                str = str + '.';
-              }
-            }
+            } 
 
             //currentDisplay = str.trim();
             currentDisplay = str;
@@ -310,6 +304,20 @@ module.exports = function(env) {
         /**
          * Handle max volume to avoid damage on user and equipment
         **/
+        if(category === 'volume' && func === 'up') {
+          var volLevel = (currentVolume + 80.5) * 2;
+          
+          if(volLevel >= pluginConfig.maxVolume) {
+            return 'Vol max reached!';
+          }
+        }
+
+        if(category === 'volume' && func === 'down') {
+          if(currentVolume > 0) {
+            return 'Vol min reached!';
+          }
+        }
+
         if(splittedCommand.size === 3) {
           value = splittedCommand[2];
           if(category === 'volume' && value > defaultMaxVolume) {
