@@ -132,8 +132,8 @@ Sample Sensor Config:
     }
 ```
 
-Sample Volume Slider config:
-**Slider**
+Sample Volume Slider config:  
+*Slider*
 ```
     {
       "class": "DummyDimmer",
@@ -141,7 +141,7 @@ Sample Volume Slider config:
       "name": "Slider"
     }
 ```    
-**Rule**
+*Rule*
 ```
     {
       "id": "change-vol",
