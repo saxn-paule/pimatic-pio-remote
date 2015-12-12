@@ -1,9 +1,10 @@
 # Action
 The provided action is called "**sendAVR**".  
 
-# Sensor  
-The provided sensor class is:  
-* AVRSensor  
+# Sensor
+The provided sensor class is:
+* AVRSensor
+
 ## Sensor attributes  
 Possible attributes are:  
 * volume
