@@ -22,7 +22,7 @@ module.exports = function(env) {
   var currentDisplay = '';
   var hmgDisplay = '';
   var currentInput = '';
-  
+  var currentPage = '';
   
   /**
   * Additional codes (control iPod etc.) could be found here: 
@@ -83,6 +83,13 @@ module.exports = function(env) {
   **/
   controlCodes.display = {
     'status':   'STS'
+  };
+
+  controlCodes.status = {
+    'display':   '?FL',
+    'audio':   '?AST',
+    'video':   '?VST',
+    'input':   '?RGB'
   };
 
   /**
@@ -208,46 +215,7 @@ module.exports = function(env) {
         client = new net.Socket();
 
         client.on('data', function(data) {
-          //env.logger.debug('Received: ' + data);
-
-          var stringyfiedData = data.toString();
-
-          if(stringyfiedData.indexOf('VOL') === 0) {
-            currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
-          } else if(stringyfiedData.indexOf('FL02') === 0) { // handle default display
-            var str = '';
-            for (var i = 4; i < stringyfiedData.length; i += 2) {
-              str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
-            }
-
-            /**
-            * Cut text to 15 characters
-            **/
-            if(str.length > 15) {
-              str = str.substring(0, 15);
-            } 
-
-            if(hmgDisplay.length) {
-              currentDisplay = hmgDisplay;
-            } else {
-              currentDisplay = str;
-            }            
-          } else if(stringyfiedData.indexOf('FL00') === 0) { // Handle volume display
-            var str = '';
-            for (var i = 4; i < stringyfiedData.length; i += 2) {
-              str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
-            }
-
-            currentDisplay = str; 
-          } else if(stringyfiedData.indexOf('FN') === 0) { // handle input display
-            currentInput = stringyfiedData;
-          } else if(stringyfiedData.indexOf('GEH01020') >= 0) { // handle H.M.G. display
-            var start = stringyfiedData.indexOf('GEH01020') + 9;
-            var stop = stringyfiedData.indexOf('GEH02023');
-            hmgDisplay = stringyfiedData.substring(start, stop);
-          } else {
-            env.logger.info('Received: ' + data);
-          }
+          pioRemoteActionHandler.handleData(data.toString());
         });
 
         /**
@@ -309,6 +277,9 @@ module.exports = function(env) {
     * Method for sending a command
     **/
     PioRemoteActionHandler.prototype.sendCommand = function(command) {
+
+      //env.logger.info('Command: ' + command);
+
       /**
       * parse the command
       **/
@@ -316,6 +287,11 @@ module.exports = function(env) {
         var splittedCommand = command.split('\.');
         var category = splittedCommand[0];
         var func = splittedCommand[1];
+        
+        var maxVolume = pluginConfig.maxVolume || defaultMaxVolume;
+        if(maxVolume > 185) {
+          maxVolume = 185;
+        }
 
         var value = '';
 
@@ -325,7 +301,7 @@ module.exports = function(env) {
         if(category === 'volume' && func === 'up') {
           var volLevel = (currentVolume + 80.5) * 2;
           
-          if(volLevel >= pluginConfig.maxVolume) {
+          if(volLevel >= maVolume) {
             currentDisplay = 'Vol max reached!';
             return 'Vol max reached!';
           }
@@ -338,22 +314,33 @@ module.exports = function(env) {
           }
         }
 
-        if(splittedCommand.size === 3) {
+        if(splittedCommand.length === 3) {
+
           value = splittedCommand[2];
-          if(category === 'volume' && value > defaultMaxVolume) {
-            value = defaultMaxVolume;
+          env.logger.info('value: ' + value);
+
+          /**
+          * Calculate correct value depending on maxValue
+          **/
+          if(category === 'volume' && func === 'set') {
+            if(category === 'volume' && value < 0) {
+              value = '001';
+            }
+
+            value = Math.round((value * maxVolume / 100),0);
+            while(value.toString().length < 3) {
+              value = '0' + value;
+            }
           }
 
           /**
            * Catch negative values
           **/
-          if(category === 'volume' && value < 0) {
-            value = 0;
-          }
+
         }
 
         if(controlCodes[category][func]) {
-          var dataToWrite = value + controlCodes[category][func] + '\r';
+          var dataToWrite = value + controlCodes[category][func] + '\r'; 
 
           var dataSent = client.write(dataToWrite);
           if(dataSent) {
@@ -363,8 +350,48 @@ module.exports = function(env) {
           }
         }
       } else {
-        return 'Unsupported command!';
+        return 'Unsupported command: ' + command;
       }
+    };
+
+    /**
+    * Handle the incoming data
+    **/ 
+    PioRemoteActionHandler.prototype.handleData = function(stringyfiedData) {
+          //env.logger.debug('Received: ' + stringyfiedData);
+
+          if(stringyfiedData.indexOf('VOL') === 0) {
+            currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
+
+          } else if(stringyfiedData.indexOf('FL0') === 0) { // handle default display
+            var str = '';
+            for (var i = 4; i < stringyfiedData.length; i += 2) {
+              str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
+            }
+
+            // Cut text to 15 characters
+            if(str.length > 15) {
+              str = str.substring(0, 15);
+            } 
+
+            /**
+            if(hmgDisplay.length !== 0 && stringyfiedData.indexOf('FL00') !== 0) {
+              currentDisplay = str + '\n\r' + hmgDisplay;
+            } else {
+              currentDisplay = str;
+            }
+            **/
+            currentDisplay = str;            
+          } else if(stringyfiedData.indexOf('FN') === 0) { // handle input display
+            currentInput = stringyfiedData;
+          } else if(stringyfiedData.indexOf('GEH01020') >= 0) { // handle H.M.G. display
+            var start = stringyfiedData.indexOf('GEH01020') + 9;
+            var stop = stringyfiedData.indexOf('GEH02023') -3;
+            hmgDisplay = stringyfiedData.substring(start, stop);
+            env.logger.info('H.M.G. Display: ' + hmgDisplay);
+          } else {
+            env.logger.info('Received: ' + stringyfiedData);
+          }
     };
 
     /**
@@ -416,7 +443,6 @@ module.exports = function(env) {
       var func = (function(_this) {
         return function(attr) {
           var name = attr.name;
-          env.logger.info('#### ATTR NAME: ' + name);
 
           assert(name === 'vol' || name === 'display');
 

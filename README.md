@@ -132,6 +132,27 @@ Sample Sensor Config:
     }
 ```
 
+Sample Volume Slider config:
+**Slider**
+```
+    {
+      "class": "DummyDimmer",
+      "id": "dummy-dimmer",
+      "name": "Slider"
+    }
+```    
+**Rule**
+```
+    {
+      "id": "change-vol",
+      "name": "change vol",
+      "rule": "if $dummy-dimmer.dimlevel changes then sendAvr \"volume.set.$dummy-dimmer.dimlevel\"",
+      "active": true,
+      "logging": true
+    }
+```
+
+
 Port could be 23 or 8102 depending on the model.
 
 # Known devices:
