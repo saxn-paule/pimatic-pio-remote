@@ -1,5 +1,5 @@
 # Action
-The provided action is called "**sendAVR**".
+The provided action is called "**sendAVR**".  
 The provided sensor classes are
 * VolumeSensor
 
