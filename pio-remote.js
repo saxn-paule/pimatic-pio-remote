@@ -20,6 +20,8 @@ module.exports = function(env) {
 
   var currentVolume = 0;
   var currentDisplay = '';
+  var hmgDisplay = '';
+  var currentInput = '';
   
   
   /**
@@ -212,7 +214,7 @@ module.exports = function(env) {
 
           if(stringyfiedData.indexOf('VOL') === 0) {
             currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
-          } else if(stringyfiedData.indexOf('FL') === 0) {
+          } else if(stringyfiedData.indexOf('FL02') === 0) { // handle default display
             var str = '';
             for (var i = 4; i < stringyfiedData.length; i += 2) {
               str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
@@ -225,10 +227,26 @@ module.exports = function(env) {
               str = str.substring(0, 15);
             } 
 
-            //currentDisplay = str.trim();
-            currentDisplay = str;
+            if(hmgDisplay.length) {
+              currentDisplay = hmgDisplay;
+            } else {
+              currentDisplay = str;
+            }            
+          } else if(stringyfiedData.indexOf('FL00') === 0) { // Handle volume display
+            var str = '';
+            for (var i = 4; i < stringyfiedData.length; i += 2) {
+              str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
+            }
+
+            currentDisplay = str; 
+          } else if(stringyfiedData.indexOf('FN') === 0) { // handle input display
+            currentInput = stringyfiedData;
+          } else if(stringyfiedData.indexOf('GEH01020') >= 0) { // handle H.M.G. display
+            var start = stringyfiedData.indexOf('GEH01020') + 9;
+            var stop = stringyfiedData.indexOf('GEH02023');
+            hmgDisplay = stringyfiedData.substring(start, stop);
           } else {
-            env.logger.debug('Received: ' + data);
+            env.logger.info('Received: ' + data);
           }
         });
 
@@ -308,12 +326,14 @@ module.exports = function(env) {
           var volLevel = (currentVolume + 80.5) * 2;
           
           if(volLevel >= pluginConfig.maxVolume) {
+            currentDisplay = 'Vol max reached!';
             return 'Vol max reached!';
           }
         }
 
         if(category === 'volume' && func === 'down') {
           if(currentVolume > 0) {
+            currentDisplay = 'Vol min reached!';
             return 'Vol min reached!';
           }
         }
