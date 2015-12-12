@@ -91,7 +91,8 @@ module.exports = function(env) {
     'down':     'CDN',
     'right':    'CRI',
     'left':     'CLE',
-    'enter':    'CEN'
+    'enter':    'CEN',
+    'back':     'CRT'
   };
   
   /**
