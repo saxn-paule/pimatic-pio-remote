@@ -1,7 +1,7 @@
 module.exports = {
   title: "pimatic-pio-remote device config schemas",
-  VolumeSensor: {
-    title: "VolumeSensor config options",
+  AVRSensor: {
+    title: "AVRSensor config options",
     type: "object",
     extensions: ["xAttributeOptions"],
     properties: {

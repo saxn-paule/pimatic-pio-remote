@@ -19,6 +19,7 @@ module.exports = function(env) {
   var defaultMaxVolume = 100;
 
   var currentVolume = 0;
+  var currentDisplay = '';
   
   
   /**
@@ -113,11 +114,11 @@ module.exports = function(env) {
 
       deviceConfigDef = require("./device-config-schema");
 
-      this.framework.deviceManager.registerDeviceClass("VolumeSensor", {
-        configDef: deviceConfigDef.VolumeSensor,
+      this.framework.deviceManager.registerDeviceClass("AVRSensor", {
+        configDef: deviceConfigDef.AVRSensor,
         createCallback: (function(_this) {
           return function(config) {
-            return new VolumeSensor(config, framework);
+            return new AVRSensor(config, framework);
           };
         })(this)
       });
@@ -204,10 +205,35 @@ module.exports = function(env) {
         client = new net.Socket();
 
         client.on('data', function(data) {
-          if(data.toString().indexOf('VOL') === 0) {
-            currentVolume = (0.5 * data.toString().substring(3,6) - 80.5);
+          var stringyfiedData = data.toString();
+          /**
+          * Cut of useless whitespaces (trim() doesn't work afterwards), don't ask me why
+          **/
+          stringyfiedData = stringyfiedData.replace(/(20){2,}/g, '20')
+
+          if(stringyfiedData.indexOf('VOL') === 0) {
+            currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
+          } else if(stringyfiedData.indexOf('FL') === 0) {
+            var str = '';
+            for (var i = 4; i < stringyfiedData.length; i += 2) {
+              str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
+            }
+
+            /**
+            * Fit text to 15 characters
+            **/
+            if(str.length > 15) {
+              str = str.substring(0, 15);
+            } else if(str.length < 15) {
+              while(str.length < 15) {
+                str = str + '.';
+              }
+            }
+
+            //currentDisplay = str.trim();
+            currentDisplay = str;
           } else {
-            env.logger.info('Received: ' + data);
+            env.logger.debug('Received: ' + data);
           }
         });
 
@@ -348,54 +374,80 @@ module.exports = function(env) {
   /**
   * THE VOLUME SENSOR
   **/
-  VolumeSensor = (function(_super) {
-    __extends(VolumeSensor, _super);
+  AVRSensor = (function(_super) {
+    __extends(AVRSensor, _super);
 
-    function VolumeSensor(config, framework) {
+    function AVRSensor(config, framework) {
       var attr;
       this.config = config;
       this.id = config.id;
       this.name = config.name;
       this.attributes = {};
+
       var func = (function(_this) {
         return function(attr) {
-          var name = 'vol';
+          var name = attr.name;
+          env.logger.info('#### ATTR NAME: ' + name);
 
-          _this.attributes[name] = {
-            description: name,
-            type: "number"
-          };
+          assert(name === 'vol' || name === 'display');
 
-          var getter = (function() {
-            if(!client) {
-              pioRemoteActionHandler.connect();
-            } else {
-              pioRemoteActionHandler.sendCommand('volume.status');
-            }
-            return Promise.resolve(currentVolume);
-          });
-          _this.attributes[name].unit = 'dB';
-          _this.attributes[name].acronym = 'VOL';
+          switch (name) {
+            case 'vol':
+              _this.attributes[name] = {
+                description: name,
+                type: "number"
+              };
 
+              var getter = (function() {
+                if(!client) {
+                  pioRemoteActionHandler.connect();
+                } else {
+                  pioRemoteActionHandler.sendCommand('volume.status');
+                }
+                return Promise.resolve(currentVolume);
+              });
+              _this.attributes[name].unit = 'dB';
+              _this.attributes[name].acronym = 'VOL';
+              break;
+            case 'display':
+              _this.attributes[name] = {
+                description: name,
+                type: "string"
+              };
+
+              var getter = (function() {
+                if(!client) {
+                  pioRemoteActionHandler.connect();
+                } 
+                return Promise.resolve(currentDisplay);
+              });
+              break;
+            default:
+              throw new Error("Illegal attribute name: " + name + " in AVRSensor.");
+          }
 
           _this._createGetter(name, getter);
+
           return setInterval((function() {
             return getter().then(function(value) {
               return _this.emit(name, value);
             })["catch"](function(error) {
               return env.logger.debug(error.stack);
             });
-          }), 2000);
+          }), 1000);
           
         };
       })(this);
 
-      func(this.config.attributes[0]);
+      for (var i = 0; i < this.config.attributes.length; i++) {
+        attr = this.config.attributes[i];
+        func(attr);
+      }
 
-      VolumeSensor.__super__.constructor.call(this);
+      AVRSensor.__super__.constructor.call(this);
     }
 
-    return VolumeSensor;
+    return AVRSensor;
 
   })(env.devices.Sensor);
 

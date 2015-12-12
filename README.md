@@ -1,7 +1,13 @@
 # Action
 The provided action is called "**sendAVR**".  
-The provided sensor classes are
-* VolumeSensor
+
+# Sensor
+The provided sensor class is:
+* AVRSensor
+## Sensor attributes
+Possible attributes are:
+* volume
+* display
 
 # Commands
 ### connect
@@ -93,10 +99,13 @@ Sample Plugin Config:
 Sample Sensor Config:
 ```javascript    
     {
-      "class": "VolumeSensor",
-      "id": "volumesensor",
-      "name": "Volume",
+      "class": "AVRSensor",
+      "id": "avrsensor",
+      "name": "AVR",
       "attributes": [
+        {
+          "name": "display"
+        },
         {
           "name": "vol"
         }
