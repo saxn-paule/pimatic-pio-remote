@@ -5,9 +5,11 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
 module.exports = function(env) {
   var M, PioRemotePlugin, PioRemoteActionProvider, PioRemoteActionHandler, pioRemotePlugin, pioRemoteActionHandler, client, pluginConfig, connected;
   M = env.matcher;
-
+  
+  var Promise = env.require('bluebird');
   var net = env.require('net');
   var util = env.require('util');
+  var assert = env.require('cassert');
   
   /**
   * Default connection parameters
@@ -15,6 +17,8 @@ module.exports = function(env) {
   var defaultHost = '192.168.0.15';
   var defaultPort= 23;
   var defaultMaxVolume = 100;
+
+  var currentVolume = 0;
   
   
   /**
@@ -26,7 +30,7 @@ module.exports = function(env) {
   /**
   * codes for handling the volume
   * xxxVL range is from 000 (mute) to 185 (+12dB)
-  * but should be limited to 100 (-30dB)
+  * but should be limited to 100 (-30,5dB)
   **/
   controlCodes.volume = {
     'down':     'VD',
@@ -101,11 +105,22 @@ module.exports = function(env) {
     }
 
     PioRemotePlugin.prototype.init = function(app, framework, config) {
+      var deviceConfigDef;
       this.framework = framework;
       this.config = config;
       pluginConfig = config;
       this.framework.ruleManager.addActionProvider(new PioRemoteActionProvider(this.framework));
-      return env.logger.info('Initialising done');
+
+      deviceConfigDef = require("./device-config-schema");
+
+      this.framework.deviceManager.registerDeviceClass("VolumeSensor", {
+        configDef: deviceConfigDef.VolumeSensor,
+        createCallback: (function(_this) {
+          return function(config) {
+            return new VolumeSensor(config, framework);
+          };
+        })(this)
+      });
     };
 
     return PioRemotePlugin;
@@ -113,7 +128,6 @@ module.exports = function(env) {
   })(env.plugins.Plugin);
 
   pioRemotePlugin = new PioRemotePlugin;
-
   /**
    * THE ACTION PROVIDER
   **/
@@ -190,7 +204,11 @@ module.exports = function(env) {
         client = new net.Socket();
 
         client.on('data', function(data) {
-          env.logger.info('Received: ' + data);
+          if(data.toString().indexOf('VOL') === 0) {
+            currentVolume = (0.5 * data.toString().substring(3,6) - 80.5);
+          } else {
+            env.logger.info('Received: ' + data);
+          }
         });
 
         /**
@@ -227,7 +245,7 @@ module.exports = function(env) {
         env.logger.info('Client already connected, nothing to do.');
       }
 
-      return 'done';
+      return 'done'; 
     };
 
     /**
@@ -325,8 +343,61 @@ module.exports = function(env) {
     return PioRemoteActionHandler;
 
   })(env.actions.ActionHandler);
-
   pioRemoteActionHandler = new PioRemoteActionHandler;
+
+  /**
+  * THE VOLUME SENSOR
+  **/
+  VolumeSensor = (function(_super) {
+    __extends(VolumeSensor, _super);
+
+    function VolumeSensor(config, framework) {
+      var attr;
+      this.config = config;
+      this.id = config.id;
+      this.name = config.name;
+      this.attributes = {};
+      var func = (function(_this) {
+        return function(attr) {
+          var name = 'vol';
+
+          _this.attributes[name] = {
+            description: name,
+            type: "number"
+          };
+
+          var getter = (function() {
+            if(!client) {
+              pioRemoteActionHandler.connect();
+            } else {
+              pioRemoteActionHandler.sendCommand('volume.status');
+            }
+            return Promise.resolve(currentVolume);
+          });
+          _this.attributes[name].unit = 'dB';
+          _this.attributes[name].acronym = 'VOL';
+
+
+          _this._createGetter(name, getter);
+          return setInterval((function() {
+            return getter().then(function(value) {
+              return _this.emit(name, value);
+            })["catch"](function(error) {
+              return env.logger.debug(error.stack);
+            });
+          }), 2000);
+          
+        };
+      })(this);
+
+      func(this.config.attributes[0]);
+
+      VolumeSensor.__super__.constructor.call(this);
+    }
+
+    return VolumeSensor;
+
+  })(env.devices.Sensor);
 
   module.exports.PioRemoteActionProvider = PioRemoteActionProvider;
 

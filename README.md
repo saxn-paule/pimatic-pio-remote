@@ -1,5 +1,7 @@
 # Action
 The provided action is called "**sendAVR**".
+The provided sensor classes are
+* VolumeSensor
 
 # Commands
 ### connect
@@ -78,13 +80,34 @@ There are three (self explaining) configuration parameters
 * port
 * maxVolume
 
-Sample:
+Sample Plugin Config:
 ```javascript    
     {
       "plugin": "pio-remote",
       "host": "192.168.0.15",
       "port": 23,
       "maxVolume": 100
+    }
+```
+
+Sample Sensor Config:
+```javascript    
+    {
+      "class": "VolumeSensor",
+      "id": "volumesensor",
+      "name": "Volume",
+      "attributes": [
+        {
+          "name": "vol"
+        }
+      ],
+      "xAttributeOptions": [
+        {
+          "name": "vol",
+          "displaySparkline": false,
+          "hidden": false
+        }
+      ]
     }
 ```
 

@@ -13,8 +13,7 @@
     "url": "git://github.com/saxn-paule/pimatic-pio-remote.git"
   },
   "configSchema": "pio-remote-config-schema.coffee",
-  "dependencies": {
-  },
+  "dependencies": {},
   "peerDependencies": {
     "pimatic": "0.8.*"
   },
