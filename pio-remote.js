@@ -232,7 +232,7 @@ module.exports = function(env) {
         });
 
         client.on('close', function() {
-          if(client) {
+          if(client && connected) {
             env.logger.info('Connection closed');          
             client.disconnect();
           }  
@@ -259,7 +259,7 @@ module.exports = function(env) {
     * Method to call when connection isn't needed any longer
     **/
     PioRemoteActionHandler.prototype.disconnect = function() {
-      if(client) {
+      if(client && connected) {
         env.logger.info('Closing telnet session...');
         client.destroy();
         client = undefined;
@@ -301,7 +301,7 @@ module.exports = function(env) {
         if(category === 'volume' && func === 'up') {
           var volLevel = (currentVolume + 80.5) * 2;
           
-          if(volLevel >= maVolume) {
+          if(volLevel >= maxVolume) {
             currentDisplay = 'Vol max reached!';
             return 'Vol max reached!';
           }
