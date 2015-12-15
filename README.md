@@ -91,7 +91,7 @@ There are three (self explaining) configuration parameters
 * maxVolume
 * brand
 
-Sample Plugin Config:
+### Sample Plugin Config:
 ```javascript    
     {
       "plugin": "pio-remote",
