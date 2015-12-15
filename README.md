@@ -24,7 +24,7 @@ Has to be used in the following syntax (*value* is optional and only usable with
 [action] "[category].[command].[value]"
 ```
 Sample:
-*Set volume to -40dB*
+*Set volume to -40dB (pioneer)*
 ```
 sendAVR "volume.set.080"
 ```
@@ -80,15 +80,18 @@ sendAVR "power.off"
 * cursor.enter
 * cursor.back
 
-Additional commands for iPod control etc. could be found here but are not supported by this plugin yet. Feel free to contribute.: http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
+Additional commands for iPod control etc. could be found here but are not supported by this plugin yet. Feel free to contribute.  
+Pioneer: http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
+Denon: http://openrb.com/wp-content/uploads/2012/02/AVR3312CI_AVR3312_PROTOCOL_V7.6.0.pdf
 
 # Configuration
 There are three (self explaining) configuration parameters
 * host
 * port
 * maxVolume
+* brand
 
-Sample Plugin Config:
+### Sample Plugin Config:
 ```javascript    
     {
       "plugin": "pio-remote",
@@ -98,7 +101,8 @@ Sample Plugin Config:
       "brand": "pioneer" || "denon" (default: pioneer)
     }
 ```
-The maxVolume could be calculated by the following formula
+The available volume level depends on the AVR brand.  
+**Pioneer**: Volume range from 000 (mute) till 185 (+12dB). Concrete value could be calculated by the following formula
 ```
 dB = 0.5 * volLevel - 80,5
 ```
@@ -108,8 +112,17 @@ Sample for a limit of -50dB
 30.5 = 0.5 * volLevel
 61 = volLevel
 ```
+**Denon**: Volume range from 000 (-80dB) till 098 (+18dB). Concrete value could be calculated by the following formula
+```
+dB = volLevel - 80
+```
+Sample for a limit of -50dB
+```
+-50 = volLevel - 80
+30 = volLevel
+```
 
-Sample Sensor Config:
+### Sample Sensor Config:
 ```javascript    
     {
       "class": "AVRSensor",
@@ -133,7 +146,7 @@ Sample Sensor Config:
     }
 ```
 
-Sample Volume Slider config:  
+### Sample Volume Slider config:  
 *Slider*
 ```
     {
@@ -158,21 +171,21 @@ Port could be 23 or 8102 depending on the model.
 
 # Known devices:
 ### Port 23:
-* SC-81
-* VSX-921
-* VSX-922
+* Pioneer SC-81
+* Pioneer VSX-921
+* Pioneer VSX-922
 
 ### Port 8102:
-* SC-81
-* VSX-42
-* VSX-43
-* VSX-527
-* VSX-528
-* VSX-921
-* VSX-1020
-* VSX-1023
-* VSX-2120
-* VSX-S510
+* Pioneer SC-81
+* Pioneer VSX-42
+* Pioneer VSX-43
+* Pioneer VSX-527
+* Pioneer VSX-528
+* Pioneer VSX-921
+* Pioneer VSX-1020
+* Pioneer VSX-1023
+* Pioneer VSX-2120
+* Pioneer VSX-S510
 
 # Beware
 This plugin is in an early alpha stadium and you use it on your own risk. 
