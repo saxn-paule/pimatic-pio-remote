@@ -94,7 +94,8 @@ Sample Plugin Config:
       "plugin": "pio-remote",
       "host": "192.168.0.15",
       "port": 23,
-      "maxVolume": 100
+      "maxVolume": 100,
+      "brand": "pioneer" || "denon" (default: pioneer)
     }
 ```
 The maxVolume could be calculated by the following formula
