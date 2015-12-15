@@ -65,6 +65,14 @@
       "on":       "PWON",
       "off":      "PWSTANDBY",
       "status":   "PW?"
+    },
+    "cursor": {
+      "up":       "CUP",
+      "down":     "CDN",
+      "right":    "CRT",
+      "left":     "CLT",
+      "enter":    "ENT",
+      "back":     "RTN"
     }
   }
 }
