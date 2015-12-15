@@ -31,7 +31,7 @@ module.exports = function(env) {
   **/
   var defaultHost = '192.168.0.15';
   var defaultPort= 23;
-  var defaultMaxVolume = 100;
+  var defaultMaxVolume = 98;
   var defaultBrand = 'pioneer';
 
   var currentVolume = 0;
@@ -234,8 +234,8 @@ module.exports = function(env) {
         var func = splittedCommand[1];
         
         var maxVolume = pluginConfig.maxVolume || defaultMaxVolume;
-        if(maxVolume > 185) {
-          maxVolume = 185;
+        if(maxVolume > controlCodes[brand].maxVolume) {
+          maxVolume = controlCodes[brand].maxVolume;
         }
 
         var value = '';
@@ -253,7 +253,7 @@ module.exports = function(env) {
         }
 
         if(category === 'volume' && func === 'down') {
-          if(currentVolume > 0) {
+          if(currentVolume <= 1) {
             currentDisplay = 'Vol min reached!';
             return 'Vol min reached!';
           }
@@ -273,7 +273,12 @@ module.exports = function(env) {
             }
 
             value = Math.round((value * maxVolume / 100),0);
-            while(value.toString().length < 3) {
+			
+			var volumeDigits = 3;
+			if (brand === 'denon') {
+			  volumeDigits = 2;
+			}
+            while(value.toString().length < volumeDigits) {
               value = '0' + value;
             }
           }

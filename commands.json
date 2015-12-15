@@ -1,5 +1,6 @@
 {
   "pioneer": {
+    "maxVolume": 185,
     "volume": {
       "down":     "VD",
       "up":       "VU",
@@ -53,6 +54,7 @@
     }
   },
   "denon": {
+    "maxVolume": 98,
     "volume": {
       "down":     "MVDOWN",
       "up":       "MVUP",
