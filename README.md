@@ -101,7 +101,7 @@ Sample Plugin Config:
       "brand": "pioneer" || "denon" (default: pioneer)
     }
 ```
-The aavilable volume level depends on the AVR brand.  
+The available volume level depends on the AVR brand.  
 **Pioneer**: Volume range from 000 (mute) till 185 (+12dB). Concrete value could be calculated by the following formula
 ```
 dB = 0.5 * volLevel - 80,5
@@ -122,7 +122,7 @@ Sample for a limit of -50dB
 30 = volLevel
 ```
 
-Sample Sensor Config:
+### Sample Sensor Config:
 ```javascript    
     {
       "class": "AVRSensor",
@@ -146,7 +146,7 @@ Sample Sensor Config:
     }
 ```
 
-Sample Volume Slider config:  
+### Sample Volume Slider config:  
 *Slider*
 ```
     {
