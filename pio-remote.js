@@ -41,8 +41,10 @@ module.exports = function(env) {
 
   
   /**
-  * Additional codes (control iPod etc.) for pioneer receivers could be found here:
+  * Additional codes (control iPod etc.) for pioneer or denon receivers could be found here:
   * http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
+  * and here
+  * http://openrb.com/wp-content/uploads/2012/02/AVR3312CI_AVR3312_PROTOCOL_V7.6.0.pdf
   **/
   var controlCodes = require("./commands.json");
   

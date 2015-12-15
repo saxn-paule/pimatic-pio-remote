@@ -53,6 +53,18 @@
     }
   },
   "denon": {
-
+    "volume": {
+      "down":     "MVDOWN",
+      "up":       "MVUP",
+      "set":      "MV",
+      "mute":     "MU",
+      "muteState":"MU?",
+      "status":   "MV?"
+    },
+    "power" : {
+      "on":       "PWON",
+      "off":      "PWSTANDBY",
+      "status":   "PW?"
+    }
   }
 }
