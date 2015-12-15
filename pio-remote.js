@@ -1,6 +1,21 @@
-var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+var __bind = function(fn, me){
+  return function(){
+    return fn.apply(me, arguments);
+  };
+},
+__hasProp = {}.hasOwnProperty,
+__extends = function(child, parent) {
+  for (var key in parent) {
+    if (__hasProp.call(parent, key)) child[key] = parent[key];
+  }
+  function ctor() {
+    this.constructor = child;
+  }
+  ctor.prototype = parent.prototype;
+  child.prototype = new ctor();
+  child.__super__ = parent.prototype;
+  return child;
+};
 
 module.exports = function(env) {
   var M, PioRemotePlugin, PioRemoteActionProvider, PioRemoteActionHandler, pioRemotePlugin, pioRemoteActionHandler, client, pluginConfig, connected;
@@ -17,92 +32,19 @@ module.exports = function(env) {
   var defaultHost = '192.168.0.15';
   var defaultPort= 23;
   var defaultMaxVolume = 100;
+  var defaultBrand = 'pioneer';
 
   var currentVolume = 0;
   var currentDisplay = '';
   var hmgDisplay = '';
   var currentInput = '';
-  var currentPage = '';
+
   
   /**
-  * Additional codes (control iPod etc.) could be found here: 
+  * Additional codes (control iPod etc.) for pioneer receivers could be found here:
   * http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
   **/
-  var controlCodes = {};
-  
-  /**
-  * codes for handling the volume
-  * xxxVL range is from 000 (mute) to 185 (+12dB)
-  * but should be limited to 100 (-30,5dB)
-  **/
-  controlCodes.volume = {
-    'down':     'VD',
-    'up':       'VU',
-    'set':      'VL',
-    'mute':     'MZ',
-    'status':   '?V'
-  };
-  
-  /**
-  * codes for handling the power
-  **/
-  controlCodes.power = {
-  	'on':       'PO',
-    'off':      'PF',
-    'status':   '?Q'
-  };
-  
-  /**
-  * codes for handling the input
-  **/
-  controlCodes.input = {
-    'phono':    '00FN',
-    'cd':       '01FN',
-    'cdr_tape': '03FN',
-    'dvd':      '04FN',
-    'tv_sat':   '05FN',
-    'video1':   '10FN',
-    'video2':   '14FN',
-    'dvr_bdr':  '15FN',
-    'ipod_usb': '17FN',
-    'hdmi1':    '19FN',
-    'hdmi2':    '20FN',
-    'hdmi3':    '21FN',
-    'hdmi4':    '22FN',
-    'hdmi5':    '23FN',
-    'hdmi6':    '24FN',
-    'bd':       '25FN',
-    'hmg':      '26FN',
-    'internet_radio':'38FN',
-    'change':'FU',
-    'status':   '?F'
-  };
-
-  /**
-   * Gets the current displayed information
-  **/
-  controlCodes.display = {
-    'status':   'STS'
-  };
-
-  controlCodes.status = {
-    'display':   '?FL',
-    'audio':   '?AST',
-    'video':   '?VST',
-    'input':   '?RGB'
-  };
-
-  /**
-   * codes for handling the cursor
-   **/
-  controlCodes.cursor = {
-    'up':       'CUP',
-    'down':     'CDN',
-    'right':    'CRI',
-    'left':     'CLE',
-    'enter':    'CEN',
-    'back':     'CRT'
-  };
+  var controlCodes = require("./commands.json");
   
   /**
    * THE PLUGIN ITSELF 
@@ -149,8 +91,6 @@ module.exports = function(env) {
       this.framework = framework;
       this.config = config;
       this.connectAction = __bind(this.connectAction, this);
-      this.myOptionKeys = ['connect'];
-      //this.configWithDefaults = _.assign(config.__proto__, config);
     }
 
     /**
@@ -167,11 +107,13 @@ module.exports = function(env) {
           return commandTokens = tokens;
         };
       })(this);
+
       onEnd = (function(_this) {
-        return function() {
-          return fullMatch = true;
-        };
+          return function() {
+            return fullMatch = true;
+          };
       })(this);
+
       m = M(input, context).match("sendAvr ").matchStringWithVars(setCommand);
       if (m.hadMatch()) {
         match = m.getFullMatch();
@@ -238,7 +180,9 @@ module.exports = function(env) {
           }  
         });
 
-        client.connect(pluginConfig.port ? pluginConfig.port : defaultPort, pluginConfig.host ? pluginConfig.host : defaultHost, function() {
+        client.connect(pluginConfig.port ? pluginConfig.port : defaultPort,
+          pluginConfig.host ? pluginConfig.host : defaultHost, function() {
+
           if(command) {
             /**
             * assuming everything went okay, because there is no callback
@@ -277,8 +221,7 @@ module.exports = function(env) {
     * Method for sending a command
     **/
     PioRemoteActionHandler.prototype.sendCommand = function(command) {
-
-      //env.logger.info('Command: ' + command);
+      var brand = pluginConfig.brand || defaultBrand;
 
       /**
       * parse the command
@@ -339,8 +282,8 @@ module.exports = function(env) {
 
         }
 
-        if(controlCodes[category][func]) {
-          var dataToWrite = value + controlCodes[category][func] + '\r'; 
+        if(controlCodes[brand][category][func]) {
+          var dataToWrite = value + controlCodes[brand][category][func] + '\r';
 
           var dataSent = client.write(dataToWrite);
           if(dataSent) {
@@ -358,7 +301,6 @@ module.exports = function(env) {
     * Handle the incoming data
     **/ 
     PioRemoteActionHandler.prototype.handleData = function(stringyfiedData) {
-          //env.logger.debug('Received: ' + stringyfiedData);
 
           if(stringyfiedData.indexOf('VOL') === 0) {
             currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);

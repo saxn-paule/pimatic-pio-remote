@@ -1,0 +1,58 @@
+{
+  "pioneer": {
+    "volume": {
+      "down":     "VD",
+      "up":       "VU",
+      "set":      "VL",
+      "mute":     "MZ",
+      "status":   "?V"
+    },
+    "power" : {
+      "on":       "PO",
+      "off":      "PF",
+      "status":   "?Q"
+    },
+    "input": {
+      "phono":    "00FN",
+      "cd":       "01FN",
+      "cdr_tape": "03FN",
+      "dvd":      "04FN",
+      "tv_sat":   "05FN",
+      "video1":   "10FN",
+      "video2":   "14FN",
+      "dvr_bdr":  "15FN",
+      "ipod_usb": "17FN",
+      "hdmi1":    "19FN",
+      "hdmi2":    "20FN",
+      "hdmi3":    "21FN",
+      "hdmi4":    "22FN",
+      "hdmi5":    "23FN",
+      "hdmi6":    "24FN",
+      "bd":       "25FN",
+      "hmg":      "26FN",
+      "internet_radio":"38FN",
+      "change":"FU",
+      "status":   "?F"
+    },
+    "display": {
+      "status":   "STS"
+    },
+    "status": {
+      "display":   "?FL",
+      "audio":   "?AST",
+      "video":   "?VST",
+      "input":   "?RGB"
+    },
+    "cursor": {
+      "up":       "CUP",
+      "down":     "CDN",
+      "right":    "CRI",
+      "left":     "CLE",
+      "enter":    "CEN",
+      "back":     "CRT"
+    }
+  },
+  "denon": {
+
+  }
+}

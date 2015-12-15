@@ -16,4 +16,8 @@ module.exports = {
       description: "max Volume"
       type: "integer"
       default: 100
+    brand:
+      description: "AVR brand"
+      type: "string"
+      default: "pioneer"
 }
