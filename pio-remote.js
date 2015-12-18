@@ -38,6 +38,8 @@ module.exports = function(env) {
   var currentDisplay = '';
   var hmgDisplay = '';
   var currentInput = '';
+  var responseHandler;
+  var brand;
 
   
   /**
@@ -59,12 +61,15 @@ module.exports = function(env) {
       return PioRemotePlugin.__super__.constructor.apply(this, arguments);
     }
 
-    PioRemotePlugin.prototype.init = function(app, framework, config) {
+    PioRemotePlugin.prototype.init = function(app, framework, config) {	
       var deviceConfigDef;
       this.framework = framework;
       this.config = config;
       pluginConfig = config;
       this.framework.ruleManager.addActionProvider(new PioRemoteActionProvider(this.framework));
+	  
+	  brand = pluginConfig.brand || defaultBrand;
+	  responseHandler = require("./" + brand + "ResponseHandler.js");
 
       deviceConfigDef = require("./device-config-schema");
 
@@ -223,8 +228,6 @@ module.exports = function(env) {
     * Method for sending a command
     **/
     PioRemoteActionHandler.prototype.sendCommand = function(command) {
-      var brand = pluginConfig.brand || defaultBrand;
-
       /**
       * parse the command
       **/
@@ -310,39 +313,19 @@ module.exports = function(env) {
     * Handle the incoming data
     **/ 
     PioRemoteActionHandler.prototype.handleData = function(stringyfiedData) {
-          
-		  if(stringyfiedData.indexOf('VOL') === 0) {
-            currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
-
-          } else if(stringyfiedData.indexOf('FL0') === 0) { // handle default display
-            var str = '';
-            for (var i = 4; i < stringyfiedData.length; i += 2) {
-              str += String.fromCharCode(parseInt(stringyfiedData.substr(i, 2), 16));
-            }
-
-            // Cut text to 15 characters
-            if(str.length > 15) {
-              str = str.substring(0, 15);
-            } 
-
-            /**
-            if(hmgDisplay.length !== 0 && stringyfiedData.indexOf('FL00') !== 0) {
-              currentDisplay = str + '\n\r' + hmgDisplay;
-            } else {
-              currentDisplay = str;
-            }
-            **/
-            currentDisplay = str;            
-          } else if(stringyfiedData.indexOf('FN') === 0) { // handle input display
-            currentInput = stringyfiedData;
-          } else if(stringyfiedData.indexOf('GEH01020') >= 0) { // handle H.M.G. display
-            var start = stringyfiedData.indexOf('GEH01020') + 9;
-            var stop = stringyfiedData.indexOf('GEH02023') -3;
-            hmgDisplay = stringyfiedData.substring(start, stop);
-            env.logger.info('H.M.G. Display: ' + hmgDisplay);
-          } else {
-            env.logger.info('Received: ' + stringyfiedData);
-          }
+      responseHandler.handleData(stringyfiedData, env, function(currentVol, currentDisp, currentIn) {
+		if(currentVol) {
+		  currentVolume = currentVol;
+		}
+		
+		if(currentDisp) {
+		  currentDisplay = currentDisp;
+		}
+		
+		if(currentIn) {
+		  currentInput = currentIn;
+		}
+	  });
     };
 
     /**

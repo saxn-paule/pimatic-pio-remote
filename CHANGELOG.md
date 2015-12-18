@@ -1,3 +1,6 @@
+**next version**
+* Outsourced response handler to make dedicated parsing for different brands possible
+
 **version 0.3.1** *released 2015-12-18*
 * fixed bug in min volume detection
 
