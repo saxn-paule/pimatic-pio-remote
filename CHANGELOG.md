@@ -1,4 +1,4 @@
-**next version**
+**version 0.3.0** *released 2015-12-18*
 * Added support for other AVR brands
 * Adjusted volume slider logic to work for denon aswell
 * Added denon sample values and reference to documentation
