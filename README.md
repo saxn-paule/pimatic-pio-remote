@@ -87,7 +87,7 @@ sendAVR "power.off"
 * cursor.back
 
 Additional commands for iPod control etc. could be found here but are not supported by this plugin yet. Feel free to contribute.  
-Pioneer: http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
+Pioneer: http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF  
 Denon: http://openrb.com/wp-content/uploads/2012/02/AVR3312CI_AVR3312_PROTOCOL_V7.6.0.pdf
 
 # Configuration
