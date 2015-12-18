@@ -253,6 +253,8 @@ module.exports = function(env) {
         }
 
         if(category === 'volume' && func === 'down') {
+		  var volLevel = (currentVolume + 80.5) * 2;
+		  
           if(volLevel <= 1) {
             currentDisplay = 'Vol min reached!';
             return 'Vol min reached!';
@@ -308,8 +310,8 @@ module.exports = function(env) {
     * Handle the incoming data
     **/ 
     PioRemoteActionHandler.prototype.handleData = function(stringyfiedData) {
-
-          if(stringyfiedData.indexOf('VOL') === 0) {
+          
+		  if(stringyfiedData.indexOf('VOL') === 0) {
             currentVolume = (0.5 * stringyfiedData.substring(3,6) - 80.5);
 
           } else if(stringyfiedData.indexOf('FL0') === 0) { // handle default display
