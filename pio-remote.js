@@ -253,7 +253,7 @@ module.exports = function(env) {
         }
 
         if(category === 'volume' && func === 'down') {
-          if(currentVolume <= 1) {
+          if(volLevel <= 1) {
             currentDisplay = 'Vol min reached!';
             return 'Vol min reached!';
           }
