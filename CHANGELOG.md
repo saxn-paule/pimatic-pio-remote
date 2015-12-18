@@ -1,3 +1,6 @@
+**version 0.3.1** *released 2015-12-18*
+* fixed bug in min volume detection
+
 **version 0.3.0** *released 2015-12-18*
 * Added support for other AVR brands
 * Adjusted volume slider logic to work for denon aswell
