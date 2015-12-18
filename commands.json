@@ -39,11 +39,17 @@
       "status":   "STS"
     },
     "status": {
-      "display":   "?FL",
+      "display": "?FL",
       "audio":   "?AST",
       "video":   "?VST",
       "input":   "?RGB"
     },
+	"sound": {
+		"extStereo":	"0112SR",
+		"autoSurr":		"0006SR",
+		"direct":		"0007SR",
+		"pureDirect":	"0008SR"
+	},
     "cursor": {
       "up":       "CUP",
       "down":     "CDN",

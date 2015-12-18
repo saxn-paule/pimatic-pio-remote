@@ -3,6 +3,7 @@
 * Adjusted volume slider logic to work for denon aswell
 * Added denon sample values and reference to documentation
 * Outsourced command config
+* Added some sound commands for pioneer
 
 **version 0.2.1** *released 2015-12-14*
 * Fixed critical error that causes pimatic to crash if connection to AVR cannot be established

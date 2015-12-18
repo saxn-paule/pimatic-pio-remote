@@ -72,6 +72,12 @@ sendAVR "power.off"
 *get currently shown display information*
 * display.status
 
+*change the listening mode*
+* sound.extStereo
+* sound.autoSurr
+* sound.direct
+* sound.pureDirect
+
 *control the cursor*
 * cursor.up
 * cursor.down
