@@ -1,82 +1,84 @@
-var __bind = function(fn, me){
-  return function(){
-    return fn.apply(me, arguments);
-  };
-},
-__hasProp = {}.hasOwnProperty,
-__extends = function(child, parent) {
-  for (var key in parent) {
-    if (__hasProp.call(parent, key)) child[key] = parent[key];
-  }
-  function ctor() {
-    this.constructor = child;
-  }
-  ctor.prototype = parent.prototype;
-  child.prototype = new ctor();
-  child.__super__ = parent.prototype;
-  return child;
-};
+var __bind = function (fn, me) {
+    return function () {
+      return fn.apply(me, arguments);
+    };
+  },
+  __hasProp = {}.hasOwnProperty,
+  __extends = function (child, parent) {
+    for (var key in parent) {
+      if (__hasProp.call(parent, key)) child[key] = parent[key];
+    }
+    function ctor() {
+      this.constructor = child;
+    }
 
-module.exports = function(env) {
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor();
+    child.__super__ = parent.prototype;
+    return child;
+  };
+
+module.exports = function (env) {
   var M, PioRemotePlugin, PioRemoteActionProvider, PioRemoteActionHandler, pioRemotePlugin, pioRemoteActionHandler, client, pluginConfig, connected;
   M = env.matcher;
-  
+
   var Promise = env.require('bluebird');
   var net = env.require('net');
   var util = env.require('util');
   var assert = env.require('cassert');
-  
+
   /**
-  * Default connection parameters
-  **/
+   * Default connection parameters
+   **/
   var defaultHost = '192.168.0.15';
-  var defaultPort= 23;
+  var defaultPort = 23;
   var defaultMaxVolume = 98;
   var defaultBrand = 'pioneer';
 
+  var retryCount = 0;
+  var lastRetry = new Date();
   var currentVolume = 0;
   var currentDisplay = '';
-  var hmgDisplay = '';
   var currentInput = '';
-  var responseHandler;
+  var avrHandler;
   var brand;
 
-  
+
   /**
-  * Additional codes (control iPod etc.) for pioneer or denon receivers could be found here:
-  * http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
-  * and here
-  * http://openrb.com/wp-content/uploads/2012/02/AVR3312CI_AVR3312_PROTOCOL_V7.6.0.pdf
-  **/
+   * Additional codes (control iPod etc.) for pioneer or denon receivers could be found here:
+   * http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%20Install/VSX-1120-K-RS232.PDF
+   * and here
+   * http://openrb.com/wp-content/uploads/2012/02/AVR3312CI_AVR3312_PROTOCOL_V7.6.0.pdf
+   **/
   var controlCodes = require("./commands.json");
-  
+
   /**
-   * THE PLUGIN ITSELF 
-  **/
-  PioRemotePlugin = (function(_super) {
+   * THE PLUGIN ITSELF
+   **/
+  PioRemotePlugin = (function (_super) {
     __extends(PioRemotePlugin, _super);
 
     function PioRemotePlugin() {
-      this.init = __bind(this.init, this);      
+      this.init = __bind(this.init, this);
       return PioRemotePlugin.__super__.constructor.apply(this, arguments);
     }
 
-    PioRemotePlugin.prototype.init = function(app, framework, config) {	
+    PioRemotePlugin.prototype.init = function (app, framework, config) {
       var deviceConfigDef;
       this.framework = framework;
       this.config = config;
       pluginConfig = config;
       this.framework.ruleManager.addActionProvider(new PioRemoteActionProvider(this.framework));
-	  
-	  brand = pluginConfig.brand || defaultBrand;
-	  responseHandler = require("./" + brand + "ResponseHandler.js");
+
+      brand = pluginConfig.brand || defaultBrand;
+      avrHandler = require("./" + brand + "Handler.js");
 
       deviceConfigDef = require("./device-config-schema");
 
       this.framework.deviceManager.registerDeviceClass("AVRSensor", {
         configDef: deviceConfigDef.AVRSensor,
-        createCallback: (function(_this) {
-          return function(config) {
+        createCallback: (function (_this) {
+          return function (config) {
             return new AVRSensor(config, framework);
           };
         })(this)
@@ -90,8 +92,8 @@ module.exports = function(env) {
   pioRemotePlugin = new PioRemotePlugin;
   /**
    * THE ACTION PROVIDER
-  **/
-  PioRemoteActionProvider = (function(_super) {
+   **/
+  PioRemoteActionProvider = (function (_super) {
     __extends(PioRemoteActionProvider, _super);
 
     function PioRemoteActionProvider(framework, config) {
@@ -102,23 +104,23 @@ module.exports = function(env) {
 
     /**
      *This function handles action in the form of `sendAvr "some string"`
-    **/
+     **/
 
-    PioRemoteActionProvider.prototype.parseAction = function(input, context) {
+    PioRemoteActionProvider.prototype.parseAction = function (input, context) {
       var commandTokens, fullMatch, m, match, onEnd, retVal, setCommand;
       retVal = null;
       commandTokens = null;
       fullMatch = false;
-      setCommand = (function(_this) {
-        return function(m, tokens) {
+      setCommand = (function (_this) {
+        return function (m, tokens) {
           return commandTokens = tokens;
         };
       })(this);
 
-      onEnd = (function(_this) {
-          return function() {
-            return fullMatch = true;
-          };
+      onEnd = (function (_this) {
+        return function () {
+          return fullMatch = true;
+        };
       })(this);
 
       m = M(input, context).match("sendAvr ").matchStringWithVars(setCommand);
@@ -139,202 +141,123 @@ module.exports = function(env) {
   })(env.actions.ActionProvider);
 
   /**
-   * THE ACTION HANDLER 
-  **/
+   * THE ACTION HANDLER
+   **/
 
-  PioRemoteActionHandler = (function(_super) {
+  PioRemoteActionHandler = (function (_super) {
     __extends(PioRemoteActionHandler, _super);
 
     function PioRemoteActionHandler(framework, commandTokens) {
       this.framework = framework;
       this.commandTokens = commandTokens;
       this.executeAction = __bind(this.executeAction, this);
-      this.connect = __bind(this.connect, this);   
+      this.connect = __bind(this.connect, this);
       this.disconnect = __bind(this.disconnect, this);
       this.sendCommand = __bind(this.sendCommand, this);
     }
 
     /**
-    * Method for establishing connection to the receiver
-    **/
-    PioRemoteActionHandler.prototype.connect = function(command) {      
-      if(!client || !connected) {
+     * Method for establishing connection to the receiver
+     **/
+    PioRemoteActionHandler.prototype.connect = function (command) {
+      if (!client || !connected) {
         env.logger.info('Client isn\'t connected yet, establish new connection...');
 
         client = new net.Socket();
 
-        client.on('data', function(data) {
+        client.on('data', function (data) {
           pioRemoteActionHandler.handleData(data.toString());
         });
 
         /**
-        * this event is triggered, if the connection is successfully established
-        **/
-        client.on('connect', function() {
+         * this event is triggered, if the connection is successfully established
+         **/
+        client.on('connect', function () {
           env.logger.info('Connection successfully established');
           connected = true;
+          retryCount = 0;
         });
 
-        client.on('error', function(ex) {
+        client.on('error', function (ex) {
           env.logger.info('An error occured during connecting to avr: ' + ex);
           connected = false;
         });
 
-        client.on('close', function() {
-          if(client && connected) {
-            env.logger.info('Connection closed');          
+        client.on('close', function () {
+          if (client && connected) {
+            env.logger.info('Connection closed');
             client.disconnect();
-          }  
+          }
         });
 
         client.connect(pluginConfig.port ? pluginConfig.port : defaultPort,
-          pluginConfig.host ? pluginConfig.host : defaultHost, function() {
+          pluginConfig.host ? pluginConfig.host : defaultHost, function () {
 
-          if(command) {
-            /**
-            * assuming everything went okay, because there is no callback
-            **/
-            return pioRemoteActionHandler.sendCommand(command);
-          } else {
-            return 'done';
-          }  
-        });
+            if (command) {
+              /**
+               * assuming everything went okay, because there is no callback
+               **/
+              return pioRemoteActionHandler.sendCommand(command);
+            } else {
+              return 'done';
+            }
+          });
       } else {
         env.logger.info('Client already connected, nothing to do.');
       }
 
-      return 'done'; 
+      return 'done';
     };
 
     /**
-    * Method to call when connection isn't needed any longer
-    **/
-    PioRemoteActionHandler.prototype.disconnect = function() {
-      if(client && connected) {
+     * Method to call when connection isn't needed any longer
+     **/
+    PioRemoteActionHandler.prototype.disconnect = function () {
+      if (client && connected) {
         env.logger.info('Closing telnet session...');
         client.destroy();
         client = undefined;
         connected = false;
-      
+
         return 'disconnected';
       } else {
         env.logger.info('Nothing to disconnect from.');
       }
-      
+
       return 'disconnected';
     };
-	
+
     /**
-    * Method for sending a command
-    **/
-    PioRemoteActionHandler.prototype.sendCommand = function(command) {
-      /**
-      * parse the command
-      **/
-      if(command && command.indexOf('\.') > 0) {
-        var splittedCommand = command.split('\.');
-        var category = splittedCommand[0];
-        var func = splittedCommand[1];
-        
-        var maxVolume = pluginConfig.maxVolume || defaultMaxVolume;
-        if(maxVolume > controlCodes[brand].maxVolume) {
-          maxVolume = controlCodes[brand].maxVolume;
-        }
-
-        var value = '';
-
-        /**
-         * Handle max volume to avoid damage on user and equipment
-        **/
-        if(category === 'volume' && func === 'up') {
-          var volLevel = (currentVolume + 80.5) * 2;
-          
-          if(volLevel >= maxVolume) {
-            currentDisplay = 'Vol max reached!';
-            return 'Vol max reached!';
-          }
-        }
-
-        if(category === 'volume' && func === 'down') {
-		  var volLevel = (currentVolume + 80.5) * 2;
-		  
-          if(volLevel <= 1) {
-            currentDisplay = 'Vol min reached!';
-            return 'Vol min reached!';
-          }
-        }
-
-        if(splittedCommand.length === 3) {
-
-          value = splittedCommand[2];
-          env.logger.info('value: ' + value);
-
-          /**
-          * Calculate correct value depending on maxValue
-          **/
-          if(category === 'volume' && func === 'set') {
-            if(category === 'volume' && value < 0) {
-              value = '001';
-            }
-
-            value = Math.round((value * maxVolume / 100),0);
-			
-			var volumeDigits = 3;
-			if (brand === 'denon') {
-			  volumeDigits = 2;
-			}
-            while(value.toString().length < volumeDigits) {
-              value = '0' + value;
-            }
-          }
-
-          /**
-           * Catch negative values
-          **/
-
-        }
-
-        if(controlCodes[brand][category][func]) {
-          var dataToWrite = value + controlCodes[brand][category][func] + '\r';
-
-          var dataSent = client.write(dataToWrite);
-          if(dataSent) {
-            return 'Sent command: ' + dataToWrite;
-          } else {
-            return 'An error occured while sending data: ' + dataToWrite;            
-          }
-        }
-      } else {
-        return 'Unsupported command: ' + command;
-      }
+     * Method for sending a command
+     **/
+    PioRemoteActionHandler.prototype.sendCommand = function (command) {
+      return avrHandler.sendCommand(controlCodes, currentVolume, command, pluginConfig, client);
     };
 
     /**
-    * Handle the incoming data
-    **/ 
-    PioRemoteActionHandler.prototype.handleData = function(stringyfiedData) {
-      responseHandler.handleData(stringyfiedData, env, function(currentVol, currentDisp, currentIn) {
-		if(currentVol) {
-		  currentVolume = currentVol;
-		}
-		
-		if(currentDisp) {
-		  currentDisplay = currentDisp;
-		}
-		
-		if(currentIn) {
-		  currentInput = currentIn;
-		}
-	  });
+     * Handle the incoming data
+     **/
+    PioRemoteActionHandler.prototype.handleData = function (stringyfiedData) {
+      avrHandler.handleData(stringyfiedData, env, function (currentVol, currentDisp, currentIn) {
+        if (currentVol) {
+          currentVolume = currentVol;
+        }
+        if (currentDisp) {
+          currentDisplay = currentDisp;
+        }
+        if (currentIn) {
+          currentInput = currentIn;
+        }
+      });
     };
 
     /**
-    * This function handles action in the form of `sendAVR "command"`
-    **/
-    PioRemoteActionHandler.prototype.executeAction = function() {
-      return this.framework.variableManager.evaluateStringExpression(this.commandTokens).then((function(_this) {        
-        return function(command) {
-          switch(command) {
+     * This function handles action in the form of `sendAVR "command"`
+     **/
+    PioRemoteActionHandler.prototype.executeAction = function () {
+      return this.framework.variableManager.evaluateStringExpression(this.commandTokens).then((function (_this) {
+        return function (command) {
+          switch (command) {
             case 'connect':
               return pioRemoteActionHandler.connect();
               break;
@@ -343,16 +266,15 @@ module.exports = function(env) {
               break;
             default:
               /**
-              * If no connection to the AVR exists, connect first and send the command afterwards
-              **/
-              if(!client || !connected) {
-                return pioRemoteActionHandler.connect(command);  
-				      } else {
-					      return pioRemoteActionHandler.sendCommand(command);
-				      }
-          } 
+               * If no connection to the AVR exists, connect first and send the command afterwards
+               **/
+              if (!client || !connected) {
+                return pioRemoteActionHandler.connect(command);
+              } else {
+                return pioRemoteActionHandler.sendCommand(command);
+              }
+          }
         };
-
       })(this));
     };
 
@@ -362,9 +284,9 @@ module.exports = function(env) {
   pioRemoteActionHandler = new PioRemoteActionHandler;
 
   /**
-  * THE VOLUME SENSOR
-  **/
-  AVRSensor = (function(_super) {
+   * THE VOLUME SENSOR
+   **/
+  AVRSensor = (function (_super) {
     __extends(AVRSensor, _super);
 
     function AVRSensor(config, framework) {
@@ -374,8 +296,8 @@ module.exports = function(env) {
       this.name = config.name;
       this.attributes = {};
 
-      var func = (function(_this) {
-        return function(attr) {
+      var func = (function (_this) {
+        return function (attr) {
           var name = attr.name;
 
           assert(name === 'vol' || name === 'display');
@@ -387,11 +309,13 @@ module.exports = function(env) {
                 type: "number"
               };
 
-              var getter = (function() {
-                if(!client) {
-                  pioRemoteActionHandler.connect();
-                } else {
-                  pioRemoteActionHandler.sendCommand('volume.status');
+              var getter = (function () {
+                if (retryCount < 6 || (new Date - lastRetry) > 60000) {
+                  if (!client) {
+                    pioRemoteActionHandler.connect();
+                  } else {
+                    pioRemoteActionHandler.sendCommand('volume.status');
+                  }
                 }
                 return Promise.resolve(currentVolume);
               });
@@ -404,10 +328,12 @@ module.exports = function(env) {
                 type: "string"
               };
 
-              var getter = (function() {
-                if(!client) {
-                  pioRemoteActionHandler.connect();
-                } 
+              var getter = (function () {
+                if (retryCount < 6 || (new Date - lastRetry) > 60000) {
+                  if (!client) {
+                    pioRemoteActionHandler.connect();
+                  }
+                }
                 return Promise.resolve(currentDisplay);
               });
               break;
@@ -417,14 +343,14 @@ module.exports = function(env) {
 
           _this._createGetter(name, getter);
 
-          return setInterval((function() {
-            return getter().then(function(value) {
+          return setInterval((function () {
+            return getter().then(function (value) {
               return _this.emit(name, value);
-            })["catch"](function(error) {
+            })["catch"](function (error) {
               return env.logger.debug(error.stack);
             });
           }), 1000);
-          
+
         };
       })(this);
 
