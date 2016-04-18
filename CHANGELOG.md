@@ -1,4 +1,5 @@
-**next version**
+**version 0.4.0** *released 2016-04-18*
+* Fix missing commands.json in npm package
 * Outsourced response handler to make dedicated parsing for different brands possible
 
 **version 0.3.1** *released 2015-12-18*
