@@ -1,4 +1,4 @@
-**next version*
+**version 0.4.1** *released 2016-04-21*
 * Added missing files to package.json
 
 **version 0.4.0** *released 2016-04-18*
