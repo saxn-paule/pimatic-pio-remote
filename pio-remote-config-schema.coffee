@@ -20,4 +20,8 @@ module.exports = {
       description: "AVR brand"
       type: "string"
       default: "pioneer"
+    logLevel:
+      description: "The log level"
+      type: "string"
+      default: "info"
 }

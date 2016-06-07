@@ -91,11 +91,12 @@ Pioneer: http://www.pioneerelectronics.com/StaticFiles/PUSA/Files/Home%20Custom%
 Denon: http://openrb.com/wp-content/uploads/2012/02/AVR3312CI_AVR3312_PROTOCOL_V7.6.0.pdf
 
 # Configuration
-There are three (self explaining) configuration parameters
+There are five (self explaining) configuration parameters
 * host
 * port
 * maxVolume
 * brand
+* logLevel
 
 ### Sample Plugin Config:
 ```javascript    
@@ -104,7 +105,8 @@ There are three (self explaining) configuration parameters
       "host": "192.168.0.15",
       "port": 23,
       "maxVolume": 100,
-      "brand": "pioneer" || "denon" (default: pioneer)
+      "brand": "pioneer" || "denon" (default: pioneer),
+      "logLevel": "info" || "debug" || "warn" || "error" (default: info)
     }
 ```
 The available volume level depends on the AVR brand.  

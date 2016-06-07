@@ -1,3 +1,6 @@
+**version 0.4.2** *released 2016-06-07*
+* Added config parameter logLevel
+
 **version 0.4.1** *released 2016-04-21*
 * Added missing files to package.json
 
