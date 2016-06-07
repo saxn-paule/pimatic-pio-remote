@@ -42,6 +42,7 @@ module.exports = function (env) {
   var currentInput = '';
   var avrHandler;
   var brand;
+  var logLevel;
 
 
   /**
@@ -71,6 +72,8 @@ module.exports = function (env) {
       this.framework.ruleManager.addActionProvider(new PioRemoteActionProvider(this.framework));
 
       brand = pluginConfig.brand || defaultBrand;
+      logLevel = pluginConfig.logLevel || "info";
+	  
       avrHandler = require("./" + brand + "Handler.js");
 
       deviceConfigDef = require("./device-config-schema");
@@ -161,8 +164,10 @@ module.exports = function (env) {
      **/
     PioRemoteActionHandler.prototype.connect = function (command) {
       if (!client || !connected) {
-        env.logger.info('Client isn\'t connected yet, establish new connection...');
-
+        if(logLevel === "info") {
+		  env.logger.info('Client isn\'t connected yet, establish new connection...');
+		}
+			
         client = new net.Socket();
 
         client.on('data', function (data) {
@@ -173,20 +178,26 @@ module.exports = function (env) {
          * this event is triggered, if the connection is successfully established
          **/
         client.on('connect', function () {
-          env.logger.info('Connection successfully established');
-          connected = true;
+		  if(logLevel === "info") {
+			env.logger.info('Connection successfully established');
+		  }
+		  connected = true;
           retryCount = 0;
         });
 
         client.on('error', function (ex) {
-          env.logger.info('An error occured during connecting to avr: ' + ex);
+		  if(logLevel === "info") {
+            env.logger.info('An error occured during connecting to avr: ' + ex);
+		  }	
           connected = false;
         });
 
         client.on('close', function () {
           if (client && connected) {
-            env.logger.info('Connection closed');
-            client.disconnect();
+		    if(logLevel === "info") {
+              env.logger.info('Connection closed');
+            }
+			client.disconnect();
           }
         });
 
@@ -203,7 +214,9 @@ module.exports = function (env) {
             }
           });
       } else {
-        env.logger.info('Client already connected, nothing to do.');
+	    if(logLevel === "info") {
+          env.logger.info('Client already connected, nothing to do.');
+		}
       }
 
       return 'done';
@@ -214,14 +227,18 @@ module.exports = function (env) {
      **/
     PioRemoteActionHandler.prototype.disconnect = function () {
       if (client && connected) {
-        env.logger.info('Closing telnet session...');
+	    if(logLevel === "info") {
+          env.logger.info('Closing telnet session...');
+		}  
         client.destroy();
         client = undefined;
         connected = false;
 
         return 'disconnected';
       } else {
-        env.logger.info('Nothing to disconnect from.');
+	    if(logLevel === "info") {
+          env.logger.info('Nothing to disconnect from.');
+		}  
       }
 
       return 'disconnected';
@@ -310,7 +327,7 @@ module.exports = function (env) {
               };
 
               var getter = (function () {
-                if (retryCount < 6 || (new Date - lastRetry) > 60000) {
+                if (retryCount < 3 || (new Date - lastRetry) > 60000) {
                   if (!client) {
                     pioRemoteActionHandler.connect();
                   } else {
@@ -329,7 +346,7 @@ module.exports = function (env) {
               };
 
               var getter = (function () {
-                if (retryCount < 6 || (new Date - lastRetry) > 60000) {
+                if (retryCount < 3 || (new Date - lastRetry) > 60000) {
                   if (!client) {
                     pioRemoteActionHandler.connect();
                   }
