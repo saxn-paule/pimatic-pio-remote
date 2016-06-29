@@ -383,6 +383,10 @@ module.exports = function (env) {
 
   })(env.devices.Sensor);
 
+  AVRSensor.prototype.destroy = function() {
+    return AVRSensor.__super__.destroy.call(this);
+  };
+  
   module.exports.PioRemoteActionProvider = PioRemoteActionProvider;
 
   return pioRemotePlugin;

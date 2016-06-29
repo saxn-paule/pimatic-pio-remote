@@ -1,5 +1,5 @@
 # #pio-remote configuration options
-# Declare your config option for your plugin here. 
+# Declare your config option for your plugin here.
 module.exports = {
   title: "pio remote config options"
   type: "object"

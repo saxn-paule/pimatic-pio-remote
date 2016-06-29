@@ -1,3 +1,6 @@
+**version 0.5.0** *not releases yet*
+* Added destroy method to AVRSensor to make the plugin pimatic 0.9 compatible
+
 **version 0.4.2** *released 2016-06-07*
 * Added config parameter logLevel
 
