@@ -11,7 +11,7 @@
     "device-config-schema.js",
     "pioneerHandler.js"
   ],
-  "version": "0.4.2",
+  "version": "0.5.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/saxn-paule/pimatic-pio-remote.git"
@@ -19,7 +19,7 @@
   "configSchema": "pio-remote-config-schema.coffee",
   "dependencies": {},
   "peerDependencies": {
-    "pimatic": "0.8.*"
+    "pimatic": "0.9.*"
   },
   "engines": {
     "node": ">0.8.x",
