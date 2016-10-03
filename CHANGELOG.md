@@ -1,3 +1,6 @@
+**version 0.5.1** *released 2016-10-03*
+* Added clearTimeout call in destroy method
+
 **version 0.5.0** *released 2016-10-03*
 * Added destroy method to AVRSensor to make the plugin pimatic 0.9 compatible
 
