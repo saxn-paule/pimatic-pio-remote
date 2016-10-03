@@ -40,6 +40,7 @@ module.exports = function (env) {
   var currentVolume = 0;
   var currentDisplay = '';
   var currentInput = '';
+  var updateInterval = 1000;
   var avrHandler;
   var brand;
   var logLevel;
@@ -366,7 +367,7 @@ module.exports = function (env) {
             })["catch"](function (error) {
               return env.logger.debug(error.stack);
             });
-          }), 1000);
+          }), updateInterval);
 
         };
       })(this);
@@ -384,6 +385,9 @@ module.exports = function (env) {
   })(env.devices.Sensor);
 
   AVRSensor.prototype.destroy = function() {
+	if (this.updateInterval != null) {
+      clearTimeout(this.updateInterval);
+    }
     return AVRSensor.__super__.destroy.call(this);
   };
   
