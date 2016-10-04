@@ -313,6 +313,7 @@ module.exports = function (env) {
       this.id = config.id;
       this.name = config.name;
       this.attributes = {};
+      this.intervalTimeoutObject = null;
 
       var func = (function (_this) {
         return function (attr) {
@@ -361,14 +362,14 @@ module.exports = function (env) {
 
           _this._createGetter(name, getter);
 
-          return setInterval((function () {
+          _this.intervalTimeoutObject = setInterval((function () {
             return getter().then(function (value) {
               return _this.emit(name, value);
             })["catch"](function (error) {
               return env.logger.debug(error.stack);
             });
           }), updateInterval);
-
+	  return _this.intervalTimeoutObject;
         };
       })(this);
 
@@ -385,8 +386,8 @@ module.exports = function (env) {
   })(env.devices.Sensor);
 
   AVRSensor.prototype.destroy = function() {
-	if (this.updateInterval != null) {
-      clearTimeout(this.updateInterval);
+	if (this.intervalTimeoutObject != null) {
+      clearInterval(this.intervalTimeoutObject);
     }
     return AVRSensor.__super__.destroy.call(this);
   };
