@@ -11,7 +11,7 @@
     "power" : {
       "on":       "PO",
       "off":      "PF",
-      "status":   "?Q"
+      "status":   "?P"
     },
     "input": {
       "phono":    "00FN",

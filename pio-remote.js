@@ -39,8 +39,9 @@ module.exports = function (env) {
   var lastRetry = new Date();
   var currentVolume = 0;
   var currentDisplay = '';
+  var currentStatus = 0;
   var currentInput = '';
-  var updateInterval = 1000;
+  var updateInterval = 2000;
   var avrHandler;
   var brand;
   var logLevel;
@@ -256,12 +257,15 @@ module.exports = function (env) {
      * Handle the incoming data
      **/
     PioRemoteActionHandler.prototype.handleData = function (stringyfiedData) {
-      avrHandler.handleData(stringyfiedData, env, function (currentVol, currentDisp, currentIn) {
-        if (currentVol) {
+      avrHandler.handleData(stringyfiedData, env, function (currentVol, currentDisp, currentState, currentIn) {
+		if (currentVol) {
           currentVolume = currentVol;
         }
         if (currentDisp) {
           currentDisplay = currentDisp;
+        }
+		if (currentState === 0 || currentState === 1) {
+          currentStatus = currentState;
         }
         if (currentIn) {
           currentInput = currentIn;
@@ -302,7 +306,7 @@ module.exports = function (env) {
   pioRemoteActionHandler = new PioRemoteActionHandler;
 
   /**
-   * THE VOLUME SENSOR
+   * THE AVR SENSOR
    **/
   AVRSensor = (function (_super) {
     __extends(AVRSensor, _super);
@@ -313,12 +317,13 @@ module.exports = function (env) {
       this.id = config.id;
       this.name = config.name;
       this.attributes = {};
+	  this.intervalTimeoutObject = null;
 
       var func = (function (_this) {
         return function (attr) {
           var name = attr.name;
 
-          assert(name === 'vol' || name === 'display');
+          assert(name === 'vol' || name === 'display' || name === 'status');
 
           switch (name) {
             case 'vol':
@@ -355,20 +360,36 @@ module.exports = function (env) {
                 return Promise.resolve(currentDisplay);
               });
               break;
+			case 'status':
+              _this.attributes[name] = {
+                description: name,
+                type: "number"
+              };
+
+              var getter = (function () {
+                if (retryCount < 3 || (new Date - lastRetry) > 60000) {
+                  if (!client) {
+                    pioRemoteActionHandler.connect();
+                  }
+                }
+				return Promise.resolve(currentStatus);
+              });
+              break;  
             default:
               throw new Error("Illegal attribute name: " + name + " in AVRSensor.");
           }
 
-          _this._createGetter(name, getter);
-
-          return setInterval((function () {
+          _this._createGetter(name, getter);		  
+		  
+          _this.intervalTimeoutObject = setInterval((function () {
             return getter().then(function (value) {
               return _this.emit(name, value);
             })["catch"](function (error) {
               return env.logger.debug(error.stack);
             });
           }), updateInterval);
-
+		  return _this.intervalTimeoutObject;
+		  
         };
       })(this);
 
@@ -385,8 +406,8 @@ module.exports = function (env) {
   })(env.devices.Sensor);
 
   AVRSensor.prototype.destroy = function() {
-	if (this.updateInterval != null) {
-      clearTimeout(this.updateInterval);
+	if (this.intervalTimeoutObject != null) {
+	  clearInterval(this.intervalTimeoutObject);
     }
     return AVRSensor.__super__.destroy.call(this);
   };

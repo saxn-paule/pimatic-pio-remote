@@ -6,9 +6,10 @@ module.exports.handleData = function(stringyfiedData, env, cb) {
   }
   
   var currentDisp;
+  var currentState;
   var currentIn;
   
-  cb(currentVol, currentDisp, currentIn);
+  cb(currentVol, currentDisp, currentState, currentIn);
 };
 
 module.exports.sendCommand = function (controlCodes, currentVolume, command, pluginConfig, client) {
