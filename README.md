@@ -9,6 +9,7 @@ The provided sensor class is:
 Possible attributes are:  
 * volume
 * display
+* status
 
 # Commands
 ### connect
@@ -135,13 +136,16 @@ Sample for a limit of -50dB
     {
       "class": "AVRSensor",
       "id": "avrsensor",
-      "name": "AVR",
+      "name": "Display",
       "attributes": [
         {
           "name": "display"
         },
         {
           "name": "vol"
+        },
+        {
+          "name": "status"
         }
       ],
       "xAttributeOptions": [
@@ -149,6 +153,11 @@ Sample for a limit of -50dB
           "name": "vol",
           "displaySparkline": false,
           "hidden": false
+        },
+        {
+          "name": "status",
+          "displaySparkline": false,
+		  "hidden": true
         }
       ]
     }

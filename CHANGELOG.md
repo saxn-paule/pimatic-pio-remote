@@ -1,3 +1,7 @@
+**version 0.5.2** *released 2016-12-14*
+* Added status variabe to receive the current power state of the device
+* refactored interval timer
+
 **version 0.5.1** *released 2016-10-03*
 * Added clearTimeout call in destroy method
 

@@ -15,14 +15,25 @@ module.exports.handleData = function (stringyfiedData, env, cb) {
     }
 
     var currentDisp = str;
+  } else if (stringyfiedData.indexOf('PWR') === 0) {	  
+    // handle power state
+	var tempState = stringyfiedData.substring(3, 4);
+	
+	// the states are not intuitive so we have to switch them
+	if(tempState === '1') {
+	  var currentState = 0;
+	} else if (tempState === '0'){
+	  var currentState = 1;
+	} else {
+	  env.logger.info('This power state is unknown: ' + tempState);
+	}	
   } else if (stringyfiedData.indexOf('FN') === 0) {
     // handle input display
     var currentIn = stringyfiedData;
   } else {
-    env.logger.info('Received: ' + stringyfiedData);
+    //env.logger.info('Received: ' + stringyfiedData);
   }
-
-  cb(currentVol, currentDisp, currentIn);
+  cb(currentVol, currentDisp, currentState, currentIn);
 };
 
 module.exports.sendCommand = function (controlCodes, currentVolume, command, pluginConfig, client) {
