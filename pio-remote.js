@@ -185,13 +185,17 @@ module.exports = function (env) {
 		  }
 		  connected = true;
           retryCount = 0;
+          lastRetry = new Date();
         });
 
         client.on('error', function (ex) {
 		  if(logLevel === "info") {
             env.logger.info('An error occured during connecting to avr: ' + ex);
 		  }	
+          client.destroy();
+          client = undefined;
           connected = false;
+          
         });
 
         client.on('close', function () {
