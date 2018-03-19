@@ -1,3 +1,6 @@
+**version 0.5.3** *released 2017-03-19*
+* Added retryCount increment and reset last retry after successful connect
+
 **version 0.5.2** *released 2016-12-14*
 * Added status variabe to receive the current power state of the device
 * refactored interval timer
