@@ -129,6 +129,7 @@ module.exports = function (env) {
       })(this);
 
       m = M(input, context).match("sendAvr ").matchStringWithVars(setCommand);
+
       if (m.hadMatch()) {
         match = m.getFullMatch();
         return {
@@ -166,6 +167,8 @@ module.exports = function (env) {
      **/
     PioRemoteActionHandler.prototype.connect = function (command) {
       if (!client || !connected) {
+        retryCount++;
+
         if(logLevel === "info") {
 		  env.logger.info('Client isn\'t connected yet, establish new connection...');
 		}
